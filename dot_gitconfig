@@ -1,0 +1,71 @@
+[core]
+	excludesfile = /Users/abhipranay.chauhan/.gitignore
+	pager = delta
+	editor = nvim
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+  light = false      # set to true if you're in a terminal w/ a light background color (e.g. the default macOS terminal)
+[merge]
+	conflictStyle = zdiff3
+[diff]
+  colorMoved = default
+[user]
+	email = abhipranay.chauhan@gmail.com
+	name = abhipranay
+	signingkey = /Users/abhipranay.chauhan/.ssh/id_ed25519.pub
+[push]
+	autoSetupRemote = true
+[pull]
+	rebase = false
+[init]
+	templatedir = ~/.git-templates
+[http "https://gopkg.in"]
+	followRedirects = true
+[url "https://github.com/hellofresh/"]
+	insteadOf = git@github.com:hellofresh/
+	insteadOf = https://github.com/hellofresh/
+	insteadOf = https://git@github.com/hellofresh/
+	insteadOf = git@github.com:hellofresh/
+	insteadOf = https://github.com/hellofresh/
+	insteadOf = https://git@github.com/hellofresh/
+	insteadOf = git@github.com:hellofresh/
+	insteadOf = https://github.com/hellofresh/
+	insteadOf = https://git@github.com/hellofresh/
+	insteadOf = git@github.com:hellofresh/
+	insteadOf = https://github.com/hellofresh/
+	insteadOf = https://git@github.com/hellofresh/
+	insteadOf = git@github.com:hellofresh/
+	insteadOf = https://github.com/hellofresh/
+	insteadOf = https://git@github.com/hellofresh/
+	insteadOf = git@github.com:hellofresh/
+	insteadOf = https://github.com/hellofresh/
+	insteadOf = https://git@github.com/hellofresh/
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[http]
+	postBuffer = 157286400
+[credential]
+	helper = store
+[mergetool]
+  prompt = false
+	keepBackup = false
+[commit]
+	gpgsign = true
+[gpg]
+	format = ssh
+[safe]
+	directory = /Users/abhipranay.chauhan/Documents/work/hellofresh
+	directory = /Users/abhipranay.chauhan/Documents/work/hellofresh/customer-loyalty-integration-service
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[gpg "ssh"]
+	program = ssh-keygen

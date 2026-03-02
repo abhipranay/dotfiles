@@ -1,0 +1,57 @@
+#!/bin/bash
+set -e
+
+{{ if eq .chezmoi.os "darwin" -}}
+echo "Installing packages via Homebrew..."
+
+if ! command -v brew &> /dev/null; then
+/bin/bash -c "$(curl -fsSL
+https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+brew tap aviator-co/tap 2>/dev/null || true
+brew tap go-task/tap 2>/dev/null || true
+
+brew install \
+aviator-co/tap/av bash-completion chezmoi colordiff coreutils curl \
+docker docker-buildx docker-compose fd fzf gh git-delta gnu-sed go \
+go-task/tap/go-task grpcurl helm jq k9s lazygit libmagic libpq \
+luarocks mkcert neovim openjdk@11 pipx ripgrep tmux wget yarn yq
+
+pipx install ipython
+gh extension install dlvhdr/gh-dash 2>/dev/null || true
+
+{{ else if eq .chezmoi.os "linux" -}}
+echo "Installing packages via DNF..."
+
+sudo dnf copr enable -y atim/lazygit 2>/dev/null || true
+
+sudo dnf install -y \
+bash-completion colordiff coreutils curl fd-find file-libs fzf gh \
+git-delta golang helm java-11-openjdk jq k9s lazygit libpq-devel \
+luarocks mkcert neovim pipx postgresql-libs ripgrep tmux wget yarnpkg yq
+
+if ! command -v docker &> /dev/null; then
+sudo dnf -y install dnf-plugins-core
+sudo dnf config-manager --add-repo
+https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
+docker-compose-plugin
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+fi
+
+command -v chezmoi &> /dev/null || sh -c "$(curl -fsLS get.chezmoi.io)"
+command -v grpcurl &> /dev/null || go install
+github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
+command -v task &> /dev/null || go install github.com/go-task/task/v3/cmd/task@latest
+command -v av &> /dev/null || curl -sSL
+https://raw.githubusercontent.com/aviator-co/av/main/install.sh | bash
+
+pipx ensurepath
+pipx install ipython
+gh extension install dlvhdr/gh-dash 2>/dev/null || true
+
+{{ end -}}
+
+echo "Package installation complete!"

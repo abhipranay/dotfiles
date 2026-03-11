@@ -34,10 +34,11 @@ sudo dnf install -y --skip-unavailable \
   luarocks neovim pipx postgresql-libs ripgrep tmux wget yarnpkg yq \
   2>/dev/null || echo "Some packages may not be available, continuing..."
 
-# Install starship prompt
+# Install starship prompt to user directory
 if ! command -v starship &> /dev/null; then
-  echo "Installing starship..."
-  curl -sS https://starship.rs/install.sh | sh -s -- -y
+  echo "Installing starship to ~/.local/bin..."
+  mkdir -p ~/.local/bin
+  curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin
 fi
 
 # Install Docker only if not in container and not already installed

@@ -24,32 +24,42 @@ gh extension install dlvhdr/gh-dash 2>/dev/null || true
 {{ else if eq .chezmoi.os "linux" -}}
 echo "Installing packages via DNF..."
 
+# Enable COPR repos (ignore failures)
 sudo dnf copr enable -y atim/lazygit 2>/dev/null || true
 
-sudo dnf install -y \
-bash-completion colordiff coreutils curl fd-find file-libs fzf gh \
-git-delta golang helm java-11-openjdk jq k9s lazygit libpq-devel \
-luarocks mkcert neovim pipx postgresql-libs ripgrep tmux wget yarnpkg yq
+# Install available packages (skip unavailable with --skip-unavailable)
+sudo dnf install -y --skip-unavailable \
+  bash-completion colordiff coreutils curl fd-find file-libs fzf gh \
+  git-delta golang helm java-11-openjdk jq lazygit libpq-devel \
+  luarocks neovim pipx postgresql-libs ripgrep tmux wget yarnpkg yq \
+  2>/dev/null || echo "Some packages may not be available, continuing..."
 
-if ! command -v docker &> /dev/null; then
-sudo dnf -y install dnf-plugins-core
-sudo dnf config-manager --add-repo
-https://download.docker.com/linux/fedora/docker-ce.repo
-sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin
-docker-compose-plugin
-sudo systemctl enable --now docker
-sudo usermod -aG docker $USER
+# Install starship prompt
+if ! command -v starship &> /dev/null; then
+  echo "Installing starship..."
+  curl -sS https://starship.rs/install.sh | sh -s -- -y
 fi
 
-command -v chezmoi &> /dev/null || sh -c "$(curl -fsLS get.chezmoi.io)"
-command -v grpcurl &> /dev/null || go install
-github.com/fullstorydev/grpcurl/cmd/grpcurl@latest
-command -v task &> /dev/null || go install github.com/go-task/task/v3/cmd/task@latest
-command -v av &> /dev/null || curl -sSL
-https://raw.githubusercontent.com/aviator-co/av/main/install.sh | bash
+# Install Docker only if not in container and not already installed
+if [ ! -f /.dockerenv ] && ! command -v docker &> /dev/null; then
+  sudo dnf -y install dnf-plugins-core 2>/dev/null || true
+  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo 2>/dev/null || true
+  sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 2>/dev/null || true
+  sudo systemctl enable --now docker 2>/dev/null || true
+  sudo usermod -aG docker $USER 2>/dev/null || true
+fi
 
-pipx ensurepath
-pipx install ipython
+# Install tools via go/curl if not present
+command -v chezmoi &> /dev/null || sh -c "$(curl -fsLS get.chezmoi.io)"
+command -v grpcurl &> /dev/null || go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest 2>/dev/null || true
+command -v task &> /dev/null || go install github.com/go-task/task/v3/cmd/task@latest 2>/dev/null || true
+command -v av &> /dev/null || curl -sSL https://raw.githubusercontent.com/aviator-co/av/main/install.sh | bash 2>/dev/null || true
+
+# Python tools
+pipx ensurepath 2>/dev/null || true
+pipx install ipython 2>/dev/null || true
+
+# GitHub CLI extensions
 gh extension install dlvhdr/gh-dash 2>/dev/null || true
 
 {{ end -}}

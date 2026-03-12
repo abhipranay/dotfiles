@@ -1,0 +1,41 @@
+# Starship config (matching previous spaceship setup)
+add_newline = false
+
+format = """
+$username\
+$directory\
+$hostname\
+$git_branch\
+$git_status\
+$cmd_duration\
+$line_break\
+$jobs\
+$status\
+$character"""
+
+[username]
+show_always = true
+format = "[$user]($style) "
+
+[directory]
+format = "[$path]($style) "
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+
+[git_branch]
+format = "[$symbol$branch]($style) "
+
+[git_status]
+format = '([$all_status$ahead_behind]($style) )'
+
+[cmd_duration]
+min_time = 2_000
+format = "[$duration]($style) "
+
+[jobs]
+symbol = "✦ "
+
+[status]
+disabled = false

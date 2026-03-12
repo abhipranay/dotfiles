@@ -1,0 +1,177 @@
+if [[ -n "$ZSH_DEBUGRC" ]]; then
+  zmodload zsh/zprof
+fi
+
+# --- Start of script ---
+{{ if eq .chezmoi.os "darwin" -}}
+# macOS: Homebrew paths
+export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/bin:$PATH"
+PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+PATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
+{{ else -}}
+# Linux: Standard paths
+export PATH="$HOME/.local/bin:$HOME/go/bin:/usr/local/go/bin:$HOME/bin:$PATH"
+{{ end -}}
+export PATH
+
+export ZSH=$HOME/.zsh
+export ZPLUGIN=$ZSH/plugins
+
+{{ if eq .chezmoi.os "darwin" -}}
+export HISTFILE=$ZSH/.zsh_history
+{{ else -}}
+# Linux: Use home directory for history (avoids permission issues with mounts)
+export HISTFILE=$HOME/.zsh_history
+{{ end -}}
+
+# How many commands zsh will load to memory.
+export HISTSIZE=10000
+
+# How many commands history will save on file.
+export SAVEHIST=10000
+
+# History won't save duplicates.
+setopt HIST_IGNORE_ALL_DUPS
+
+# History won't show duplicates on search.
+setopt HIST_FIND_NO_DUPS
+
+if [ -z "$INTELLIJ_ENVIRONMENT_READER" ]; then
+  export ZSH_TMUX_AUTOSTART=false
+fi
+
+autoload -Uz $ZSH/plugins/zsh-defer/zsh-defer
+fpath=($ZSH/plugins/zsh-completions/src ~/.zsh/completions $fpath)
+
+# Defer slow plugins
+zsh-defer source $ZSH/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh
+zsh-defer source $ZSH/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+ZVM_INIT_MODE=sourcing
+zsh-defer source $ZSH/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh
+{{ if eq .chezmoi.os "darwin" -}}
+zsh-defer source $HOME/bin/claude_bedrock_login.sh
+{{ else -}}
+# Linux: Claude login helper in different location
+[[ -f /usr/local/bin/claude_bedrock_login.sh ]] && zsh-defer source /usr/local/bin/claude_bedrock_login.sh
+{{ end -}}
+
+# Starship prompt (cached init)
+if [[ ! -f ~/.zsh/starship_init.zsh ]] || [[ $(which starship) -nt ~/.zsh/starship_init.zsh ]]; then
+  starship init zsh > ~/.zsh/starship_init.zsh
+fi
+source ~/.zsh/starship_init.zsh
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Defer dev-cli-tools (includes compinit)
+zsh-defer source $HOME/Documents/work/hellofresh/dev-cli-tools/autoload
+{{ else -}}
+# Linux: run compinit directly
+autoload -Uz compinit && compinit
+{{ end -}}
+
+# ---- aliases ---
+{{ if eq .chezmoi.os "darwin" -}}
+alias g++=g++-11 --std=c++11
+alias rbrew='arch -x86_64 /usr/local/homebrew/bin/brew'
+alias worklogin="2fa microsoft 1>&2 | pbcopy"
+{{ end -}}
+alias k9staging='k9s --context upn-eks-staging --namespace conversions'
+alias k9live='k9s --context upn-eks-live --namespace conversions'
+alias rwdb='hfmongo rewards-wallet --quiet --json relaxed'
+alias vim=nvim
+alias ls='ls --color=auto'
+alias ll='ls -alF'
+alias gco='git checkout'
+alias wtests='make deps-sync && make bazel-go-test'
+alias rd='docker -H "docker-runtime000.tools.hellofresh.io:2376"'
+alias rdc='DOCKER_HOST=docker-runtime000.tools.hellofresh.io:2376 docker-compose -f docker-compose.yml -p price-service'
+alias plantuml-diagram='./plantuml-generator.sh'
+
+
+# --- funcs ---
+order_uuid() {
+  oc_namespace="78aaf076-e971-11eb-9a03-0242ac130003"
+  res=$(uuid -v5 ${oc_namespace} "$1-$2")
+  echo $res
+}
+
+aws_profiles() {
+  cat ~/.aws/config | grep '\[profile .*\]' | sed -r 's/\[profile (.*)\]/\1/'
+}
+
+{{ if eq .chezmoi.os "darwin" -}}
+function neovide(){
+  ARG="${1:-.}"
+  CUR="$(pwd)"
+  FILE="${CUR}/${ARG}"
+  PATH=$(env) NEOVIDE_CWD=$(pwd) open -a Neovide.app --args $(pwd) --frame buttonless --title-hidden --no-multigrid
+}
+{{ end -}}
+
+# --- setups ---
+# compinit is handled by dev-cli-tools/autoload (macOS) or directly (Linux)
+# --- End of script ---
+if [[ -n "$ZSH_DEBUGRC" ]]; then
+  zprof
+fi
+
+# Cache av completion (regenerate with: av completion zsh > ~/.zsh/completions/_av)
+if [[ ! -f ~/.zsh/completions/_av ]]; then
+  mkdir -p ~/.zsh/completions
+  av completion zsh > ~/.zsh/completions/_av 2>/dev/null || true
+fi
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Lazy load nvm (only loads when you first use node/npm/nvm)
+export NVM_DIR="$HOME/.nvm"
+nvm() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  nvm "$@"
+}
+node() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  node "$@"
+}
+npm() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  npm "$@"
+}
+npx() {
+  unset -f nvm node npm npx
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  npx "$@"
+}
+{{ end -}}
+
+# Generated for envman. Do not edit.
+[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+
+{{ if eq .chezmoi.os "darwin" -}}
+export KUBECONFIG=$HOME/.kube/config:{{ .chezmoi.homeDir }}/.kube/eksconfig
+export PATH="/opt/homebrew/opt/curl/bin:$PATH"
+export LDFLAGS="-L/opt/homebrew/opt/curl/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/curl/include"
+export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+export PATH="/opt/homebrew/opt/openjdk@11/bin:$PATH"
+{{ end -}}
+export EDITOR=vim
+
+{{ if eq .chezmoi.os "darwin" -}}
+# Added by Antigravity
+export PATH="{{ .chezmoi.homeDir }}/.antigravity/antigravity/bin:$PATH"
+
+# bun completions (deferred)
+zsh-defer -c '[ -s "{{ .chezmoi.homeDir }}/.bun/_bun" ] && source "{{ .chezmoi.homeDir }}/.bun/_bun"'
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+alias claude-mem='{{ .chezmoi.homeDir }}/.bun/bin/bun "{{ .chezmoi.homeDir }}/.claude/plugins/cache/thedotmack/claude-mem/10.5.2/scripts/worker-service.cjs"'
+
+# opencode
+export PATH={{ .chezmoi.homeDir }}/.opencode/bin:$PATH
+{{ end -}}

@@ -1,0 +1,27 @@
+#!/bin/sh
+
+gitleaksEnabled=$(git config --bool hooks.gitleaks)
+cmd="MODIFY_PATH_HERE/gitleaks --verbose --pretty"
+if [ $gitleaksEnabled == "true" ]; then
+        $cmd
+        if [ $? -eq 1 ]; then
+cat <<\EOF
+Alert: Possible exposure of sensitive information was identified in your changes.
+You must review your changes and make sure that no passwords, keys, tokens
+and/or secrets are commited.
+If you think that this is a false positive, please report it
+to security@hellofresh.com with the link to your commit.
+
+You can temporarily disable the check with the following command:
+
+  > $ git config hooks.gitleaks false
+
+Please remember to reenable it immediately.
+
+We appreciate your help.
+
+HelloFresh Information Security Team
+EOF
+exit 1
+    fi
+fi

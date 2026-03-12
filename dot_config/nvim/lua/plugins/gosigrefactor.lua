@@ -1,5 +1,5 @@
 return {
-  dir = "/Users/abhipranay.chauhan/Documents/work/hellofresh/vimplugins/nvim-go-sigrefactor",
+  "abhipranay/nvim-go-sigrefactor",
   ft = "go",
   config = function()
     require("go-sigrefactor").setup({

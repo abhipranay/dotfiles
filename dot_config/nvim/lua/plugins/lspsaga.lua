@@ -10,7 +10,7 @@ return {
     },
   },
   { "kosayoda/nvim-lightbulb" },
-  { "leoluz/nvim-dap-go" },
+  { "leoluz/nvim-dap-go", lazy = true }, -- loaded as a dependency of nvim-dap
   -- {
   --   "ldelossa/gh.nvim",
   --   dependencies = {

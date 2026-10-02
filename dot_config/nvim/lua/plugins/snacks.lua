@@ -7,8 +7,10 @@ return {
       picker = {
         sources = {
           explorer = {
-            hidden = true,  -- show hidden files
+            hidden = true, -- show hidden files
             ignored = true, -- show gitignored files
+            follow = true, -- follow the current file
+            focus = "list", -- focus the list when opening
             layout = {
               preset = "sidebar",
               preview = "main",
@@ -50,7 +52,6 @@ return {
             },
           },
           lsp_symbols = {
-            filter = { go = true },
             layout = {
               layout = {
                 box = "horizontal",
@@ -69,7 +70,6 @@ return {
           },
           lsp_workspace_symbols = {
             live = true,
-            filter = { go = true },
             layout = {
               layout = {
                 box = "horizontal",

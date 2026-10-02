@@ -2,10 +2,12 @@
 return {
   "neovim/nvim-lspconfig",
   opts = {
-    inlay_hints = { enabled = false },
-    autoformat = false,
+    inlay_hints = { enabled = true },
+    autoformat = true,
+    -- codelens is enabled natively in config/autocmds.lua; LazyVim's version adds a
+    -- per-buffer CursorHold autocmd calling the deprecated vim.lsp.codelens.refresh
     codelens = {
-      enabled = true,
+      enabled = false,
     },
     servers = {
       ["*"] = {

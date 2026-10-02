@@ -3,6 +3,15 @@
 -- Add any additional options here
 vim.g.mapleader = ","
 
+-- TypeScript LSP - use vtsls (required for LazyVim v8+)
+vim.g.lazyvim_ts_lsp = "vtsls"
+
+-- Set JAVA_HOME for Kotlin LSP (requires Java 17-21, not 26+); only where the Homebrew JDK exists
+local brew_jdk21 = "/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home"
+if vim.fn.isdirectory(brew_jdk21) == 1 then
+  vim.env.JAVA_HOME = brew_jdk21
+end
+
 -- make sure mousemoveevent is enabled
 vim.o.mousemoveevent = true
 -- vim.opt.foldcolumn = "0"

@@ -1,3 +1,6 @@
+# OpenSpec fpath (compinit handled by dev-cli-tools)
+fpath=("{{ .chezmoi.homeDir }}/.oh-my-zsh/custom/completions" $fpath)
+
 if [[ -n "$ZSH_DEBUGRC" ]]; then
   zmodload zsh/zprof
 fi
@@ -6,7 +9,7 @@ fi
 {{ if eq .chezmoi.os "darwin" -}}
 # macOS: Homebrew paths
 export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/bin:$PATH"
-PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
+#PATH="/opt/homebrew/opt/coreutils/libexec/gnubin:$PATH"
 PATH="$PATH:/Applications/WezTerm.app/Contents/MacOS"
 {{ else -}}
 # Linux: Standard paths
@@ -50,6 +53,7 @@ ZVM_INIT_MODE=sourcing
 zsh-defer source $ZSH/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh
 {{ if eq .chezmoi.os "darwin" -}}
 zsh-defer source $HOME/bin/claude_bedrock_login.sh
+zsh-defer source ~/.orbstack/shell/init.zsh 2>/dev/null
 {{ else -}}
 # Linux: Claude login helper in different location
 [[ -f /usr/local/bin/claude_bedrock_login.sh ]] && zsh-defer source /usr/local/bin/claude_bedrock_login.sh
@@ -72,20 +76,26 @@ autoload -Uz compinit && compinit
 # ---- aliases ---
 {{ if eq .chezmoi.os "darwin" -}}
 alias g++=g++-11 --std=c++11
+# for intel x86_64 brew
 alias rbrew='arch -x86_64 /usr/local/homebrew/bin/brew'
 alias worklogin="2fa microsoft 1>&2 | pbcopy"
+# BSD ls (gnubin disabled above)
+alias ls='ls -G'
+alias gtc='ghostty -e /opt/homebrew/bin/tmux new-session -A -s commands &!'
+{{ else -}}
+alias ls='ls --color=auto'
 {{ end -}}
 alias k9staging='k9s --context upn-eks-staging --namespace conversions'
 alias k9live='k9s --context upn-eks-live --namespace conversions'
 alias rwdb='hfmongo rewards-wallet --quiet --json relaxed'
 alias vim=nvim
-alias ls='ls --color=auto'
 alias ll='ls -alF'
 alias gco='git checkout'
 alias wtests='make deps-sync && make bazel-go-test'
 alias rd='docker -H "docker-runtime000.tools.hellofresh.io:2376"'
 alias rdc='DOCKER_HOST=docker-runtime000.tools.hellofresh.io:2376 docker-compose -f docker-compose.yml -p price-service'
 alias plantuml-diagram='./plantuml-generator.sh'
+alias wm='workmux'
 
 
 # --- funcs ---
@@ -125,29 +135,34 @@ fi
 # Lazy load nvm (only loads when you first use node/npm/nvm)
 export NVM_DIR="$HOME/.nvm"
 nvm() {
-  unset -f nvm node npm npx
+  unset -f nvm node npm npx openspec
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   nvm "$@"
 }
 node() {
-  unset -f nvm node npm npx
+  unset -f nvm node npm npx openspec
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   node "$@"
 }
 npm() {
-  unset -f nvm node npm npx
+  unset -f nvm node npm npx openspec
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   npm "$@"
 }
 npx() {
-  unset -f nvm node npm npx
+  unset -f nvm node npm npx openspec
   [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
   npx "$@"
 }
+openspec() {
+  unset -f nvm node npm npx openspec
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  openspec "$@"
+}
 {{ end -}}
 
-# Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+# Generated for envman (deferred)
+zsh-defer -c '[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"'
 
 {{ if eq .chezmoi.os "darwin" -}}
 export KUBECONFIG=$HOME/.kube/config:{{ .chezmoi.homeDir }}/.kube/eksconfig
@@ -174,4 +189,45 @@ alias claude-mem='{{ .chezmoi.homeDir }}/.bun/bin/bun "{{ .chezmoi.homeDir }}/.c
 
 # opencode
 export PATH={{ .chezmoi.homeDir }}/.opencode/bin:$PATH
+
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+export ANDROID_SDK_ROOT=$HOME/Library/Android/sdk
+export ANDROID_HOME=$ANDROID_SDK_ROOT
+export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+export PATH=$ANDROID_HOME/platform-tools:$PATH
+export PATH=$ANDROID_HOME/emulator:$PATH
 {{ end -}}
+
+[[ -f ~/.mcp-env ]] && source ~/.mcp-env
+
+# Added by GitButler installer
+export PATH="$HOME/.local/bin:$PATH"
+# GitButler completions (cached and deferred - needs compinit)
+if (( $+commands[but] )); then
+  _but_cache="$HOME/.zsh/but_completions.zsh"
+  if [[ ! -f "$_but_cache" ]] || [[ "$(which but)" -nt "$_but_cache" ]]; then
+    but completions zsh > "$_but_cache" 2>/dev/null
+  fi
+  zsh-defer -c '[[ -f "$HOME/.zsh/but_completions.zsh" ]] && source "$HOME/.zsh/but_completions.zsh"'
+  unset _but_cache
+fi
+
+# SDKMAN (lazy-loaded)
+export SDKMAN_DIR="$HOME/.sdkman"
+_sdkman_init() {
+  unset -f _sdkman_init sdk gradle maven kotlin groovy
+  [[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"
+}
+sdk() { _sdkman_init; sdk "$@"; }
+gradle() { _sdkman_init; gradle "$@"; }
+maven() { _sdkman_init; maven "$@"; }
+kotlin() { _sdkman_init; kotlin "$@"; }
+groovy() { _sdkman_init; groovy "$@"; }
+
+# jenv (lazy-loaded)
+jenv() {
+  unset -f jenv
+  eval "$(command jenv init -)"
+  jenv "$@"
+}
+

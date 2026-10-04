@@ -17,6 +17,9 @@ export PATH="$HOME/.local/bin:$HOME/go/bin:/usr/local/go/bin:$HOME/bin:$PATH"
 {{ end -}}
 export PATH
 
+# Rust toolchain (rustup)
+[[ -f "$HOME/.cargo/env" ]] && source "$HOME/.cargo/env"
+
 export ZSH=$HOME/.zsh
 export ZPLUGIN=$ZSH/plugins
 

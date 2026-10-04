@@ -75,4 +75,6 @@ vim.api.nvim_create_autocmd("FileType", {
 
 -- codelens: Neovim 0.12's provider refreshes lenses itself (debounced on text changes),
 -- so a single global enable replaces LazyVim's CursorHold refresh autocmd
-vim.lsp.codelens.enable(true)
+if vim.fn.has("nvim-0.12") == 1 then
+  vim.lsp.codelens.enable(true)
+end

@@ -1,68 +1,119 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
+USER="${USER:-$(id -un)}"
+
+# Minimum Neovim required by the LazyVim config (vim.lsp.codelens.enable, etc.)
+NVIM_MIN="0.12"
+
+nvim_ok() {
+  command -v nvim &> /dev/null &&
+    nvim --headless -c "if has('nvim-${NVIM_MIN}') | qa | else | cq | endif" 2> /dev/null
+}
 
 {{ if eq .chezmoi.os "darwin" -}}
 echo "Installing packages via Homebrew..."
 
 if ! command -v brew &> /dev/null; then
-/bin/bash -c "$(curl -fsSL
-https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv 2> /dev/null || /usr/local/bin/brew shellenv)"
 fi
 
-brew tap aviator-co/tap 2>/dev/null || true
-brew tap go-task/tap 2>/dev/null || true
+brew tap aviator-co/tap 2> /dev/null || true
+brew tap go-task/tap 2> /dev/null || true
 
 brew install \
-aviator-co/tap/av bash-completion chezmoi colordiff coreutils curl \
-docker docker-buildx docker-compose fd fzf gh git-delta gnu-sed go \
-go-task/tap/go-task grpcurl helm jq k9s lazygit libmagic libpq \
-luarocks mkcert neovim openjdk@11 pipx ripgrep tmux wget yarn yq
-
-pipx install ipython
-gh extension install dlvhdr/gh-dash 2>/dev/null || true
+  aviator-co/tap/av bash-completion chezmoi colordiff coreutils curl \
+  docker docker-buildx docker-compose fd fzf gh git-delta gnu-sed go \
+  go-task/tap/go-task grpcurl helm jq k9s lazygit libmagic libpq \
+  luarocks mkcert neovim openjdk@11 openjdk@21 pipx ripgrep starship \
+  tmux tree-sitter wget yarn yq zsh
 
 {{ else if eq .chezmoi.os "linux" -}}
 echo "Installing packages via DNF..."
 
-# Enable COPR repos (ignore failures)
-sudo dnf copr enable -y atim/lazygit 2>/dev/null || true
+mkdir -p "$HOME/.local/bin" "$HOME/.local/opt"
+export PATH="$HOME/.local/bin:$HOME/go/bin:$PATH"
 
-# Install available packages (skip unavailable with --skip-unavailable)
+# Enable COPR repos (ignore failures)
+sudo dnf copr enable -y atim/lazygit 2> /dev/null || true
+
+# --skip-unavailable tolerates missing names; real errors stay visible
 sudo dnf install -y --skip-unavailable \
   bash-completion colordiff coreutils curl fd-find file-libs fzf gh \
-  git-delta golang helm java-11-openjdk jq lazygit libpq-devel \
-  luarocks neovim pipx postgresql-libs ripgrep tmux wget yarnpkg yq \
-  2>/dev/null || echo "Some packages may not be available, continuing..."
+  gcc gcc-c++ git git-delta golang helm java-11-openjdk java-21-openjdk \
+  jq lazygit libpq-devel luarocks make neovim nodejs npm pipx \
+  postgresql-libs ripgrep tar tmux tree-sitter-cli unzip wget yarnpkg yq zsh
 
-# Install starship prompt to user directory
+# Neovim: dnf may lag behind NVIM_MIN; fall back to the upstream release
+{{- $nvimArch := "" }}
+{{- if eq .chezmoi.arch "amd64" }}{{ $nvimArch = "x86_64" }}
+{{- else if eq .chezmoi.arch "arm64" }}{{ $nvimArch = "arm64" }}
+{{- end }}
+if ! nvim_ok; then
+{{- if $nvimArch }}
+  echo "Installing Neovim from upstream release ({{ $nvimArch }})..."
+  rm -rf "$HOME/.local/opt/nvim-linux-{{ $nvimArch }}"
+  curl -fsSL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-{{ $nvimArch }}.tar.gz" |
+    tar -xz -C "$HOME/.local/opt"
+  ln -sf "$HOME/.local/opt/nvim-linux-{{ $nvimArch }}/bin/nvim" "$HOME/.local/bin/nvim"
+  hash -r
+{{- else }}
+  echo "ERROR: no upstream Neovim build for arch '{{ .chezmoi.arch }}'; install nvim >= ${NVIM_MIN} manually" >&2
+  exit 1
+{{- end }}
+fi
+
+# Starship prompt (not packaged in Fedora repos); installer detects arch itself
 if ! command -v starship &> /dev/null; then
   echo "Installing starship to ~/.local/bin..."
-  mkdir -p ~/.local/bin
-  curl -sS https://starship.rs/install.sh | sh -s -- -y -b ~/.local/bin
+  curl -sS https://starship.rs/install.sh | sh -s -- -y -b "$HOME/.local/bin"
 fi
 
-# Install Docker only if not in container and not already installed
+# Docker only if not in a container and not already installed
 if [ ! -f /.dockerenv ] && ! command -v docker &> /dev/null; then
-  sudo dnf -y install dnf-plugins-core 2>/dev/null || true
-  sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo 2>/dev/null || true
-  sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 2>/dev/null || true
-  sudo systemctl enable --now docker 2>/dev/null || true
-  sudo usermod -aG docker $USER 2>/dev/null || true
+  sudo dnf -y install dnf-plugins-core 2> /dev/null || true
+  sudo dnf config-manager addrepo --from-repofile=https://download.docker.com/linux/fedora/docker-ce.repo 2> /dev/null || true
+  sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
+  sudo systemctl enable --now docker 2> /dev/null || true
+  sudo usermod -aG docker "$USER" 2> /dev/null || true
 fi
 
-# Install tools via go/curl if not present
-command -v chezmoi &> /dev/null || sh -c "$(curl -fsLS get.chezmoi.io)"
-command -v grpcurl &> /dev/null || go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest 2>/dev/null || true
-command -v task &> /dev/null || go install github.com/go-task/task/v3/cmd/task@latest 2>/dev/null || true
-command -v av &> /dev/null || curl -sSL https://raw.githubusercontent.com/aviator-co/av/main/install.sh | bash 2>/dev/null || true
+# Make zsh the login shell (skipped in containers)
+if [ ! -f /.dockerenv ] && [ "$(getent passwd "$USER" | cut -d: -f7)" != "$(command -v zsh)" ]; then
+  sudo chsh -s "$(command -v zsh)" "$USER" || echo "WARN: could not change login shell to zsh"
+fi
 
-# Python tools
-pipx ensurepath 2>/dev/null || true
-pipx install ipython 2>/dev/null || true
-
-# GitHub CLI extensions
-gh extension install dlvhdr/gh-dash 2>/dev/null || true
+# Tools via go/curl if not present
+command -v chezmoi &> /dev/null || sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+command -v grpcurl &> /dev/null || go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest || true
+command -v task &> /dev/null || go install github.com/go-task/task/v3/cmd/task@latest || true
+command -v av &> /dev/null || curl -sSL https://raw.githubusercontent.com/aviator-co/av/main/install.sh | bash || true
 
 {{ end -}}
+
+# --- Common to macOS and Linux ---
+
+if ! nvim_ok; then
+  echo "WARN: nvim >= ${NVIM_MIN} not found; LazyVim config needs it" >&2
+fi
+
+# Go comes from brew (go) / dnf (golang) above
+# gci: Go import sorter used by the nvim on-save hook
+command -v gci &> /dev/null || go install github.com/daixiang0/gci@latest || true
+
+# Rust via rustup on both OSes (installer detects arch); PATH is set in zshrc
+if [ ! -x "$HOME/.cargo/bin/rustup" ]; then
+  echo "Installing Rust via rustup..."
+  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs |
+    sh -s -- -y --no-modify-path --profile default
+fi
+"$HOME/.cargo/bin/rustup" component add rust-analyzer clippy rustfmt
+
+pipx ensurepath > /dev/null 2>&1 || true
+pipx install ipython 2> /dev/null || true
+
+# GitHub CLI extensions
+gh extension install dlvhdr/gh-dash 2> /dev/null || true
 
 echo "Package installation complete!"

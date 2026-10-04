@@ -446,3 +446,7 @@ set -as terminal-overrides ',*:Tc'
 
 # Ensure bracketed paste works
 set -g set-clipboard on
+
+# -- session sync (editor <-> commands) ----------------------------------------
+# Sync commands session window when switching windows in editor session
+set-hook -g after-select-window 'run-shell "if [ \"#{session_name}\" = \"editor\" ]; then tmux select-window -t commands:#{window_index} 2>/dev/null || true; fi"'

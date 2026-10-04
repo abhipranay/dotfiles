@@ -88,7 +88,7 @@ fi
 command -v chezmoi &> /dev/null || sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
 command -v grpcurl &> /dev/null || go install github.com/fullstorydev/grpcurl/cmd/grpcurl@latest || true
 command -v task &> /dev/null || go install github.com/go-task/task/v3/cmd/task@latest || true
-command -v av &> /dev/null || curl -sSL https://raw.githubusercontent.com/aviator-co/av/main/install.sh | bash || true
+command -v av &> /dev/null || go install github.com/aviator-co/av/cmd/av@latest || true
 
 {{ end -}}
 

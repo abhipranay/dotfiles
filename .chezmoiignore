@@ -1,3 +1,11 @@
 .config/nvim/plugin/
 .config/tmux/plugins/
 .zsh_history
+
+# Secrets: hold credentials, must never be added to this public repo
+.zshenv
+.zshenv.local
+.mcp-env
+.netrc
+.aws/credentials
+.config/gh/hosts.yml

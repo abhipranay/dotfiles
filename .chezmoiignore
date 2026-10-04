@@ -9,3 +9,6 @@
 .netrc
 .aws/credentials
 .config/gh/hosts.yml
+
+# Generated caches (rebuilt by .zshrc per machine)
+.zsh/starship_init.zsh

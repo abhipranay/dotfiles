@@ -42,10 +42,10 @@ sudo dnf copr enable -y atim/lazygit 2> /dev/null || true
 sudo dnf install -y --skip-unavailable \
   bash-completion colordiff coreutils curl fd-find file-libs fzf gh \
   gcc gcc-c++ git git-delta golang helm java-11-openjdk java-21-openjdk \
-  jq lazygit libpq-devel luarocks make neovim nodejs npm pipx \
+  jq lazygit libpq-devel luarocks make nodejs npm pipx \
   postgresql-libs ripgrep tar tmux tree-sitter-cli unzip wget yarnpkg yq zsh
 
-# Neovim: dnf may lag behind NVIM_MIN; fall back to the upstream release
+# Neovim: always the upstream release (dnf lags behind NVIM_MIN); one nvim only
 {{- $nvimArch := "" }}
 {{- if eq .chezmoi.arch "amd64" }}{{ $nvimArch = "x86_64" }}
 {{- else if eq .chezmoi.arch "arm64" }}{{ $nvimArch = "arm64" }}

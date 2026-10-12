@@ -411,7 +411,6 @@ tmux_conf_uninstall_plugins_on_reload=true
 #set -g @plugin 'tmux-plugins/tmux-resurrect'
 #set -g @plugin 'tmux-plugins/tmux-continuum'
 #set -g @continuum-restore 'on'
-set -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 # -- custom variables ----------------------------------------------------------
 
@@ -450,3 +449,12 @@ set -g set-clipboard on
 # -- session sync (editor <-> commands) ----------------------------------------
 # Sync commands session window when switching windows in editor session
 set-hook -g after-select-window 'run-shell "if [ \"#{session_name}\" = \"editor\" ]; then tmux select-window -t commands:#{window_index} 2>/dev/null || true; fi"'
+
+# -- vim-tmux-navigator (inline, no TPM) ----------------------------------------
+# nvim side: christoomey/vim-tmux-navigator (~/.config/nvim/lua/plugins/tmux.lua)
+is_vim="ps -o state= -o comm= -t '#{pane_tty}' | grep -iqE '^[^TXZ ]+ +(\\S+\\/)?g?\\.?(view|l?n?vim?x?|fzf)(diff)?(-wrapped)?$'"
+bind -n C-h if-shell "$is_vim" 'send-keys C-h' 'select-pane -L'
+bind -n C-j if-shell "$is_vim" 'send-keys C-j' 'select-pane -D'
+bind -n C-k if-shell "$is_vim" 'send-keys C-k' 'select-pane -U'
+bind -n C-l if-shell "$is_vim" 'send-keys C-l' 'select-pane -R'
+bind -n 'C-\' if-shell "$is_vim" 'send-keys C-\\' 'select-pane -l'

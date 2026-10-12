@@ -1,7 +1,10 @@
+# oh-my-tmux, pinned: an unpinned weekly refresh silently changed TPM handling
+# on 2026-10-04. To upgrade, bump the commit SHA and test before committing.
 [".tmux"]
-    type = "git-repo"
-    url = "https://github.com/gpakosz/.tmux.git"
-    refreshPeriod = "168h"
+    type = "archive"
+    url = "https://github.com/gpakosz/.tmux/archive/58a3dcc0d718ec0fa1c0d5a2fddd640a1ad7a5b7.tar.gz"
+    exact = true
+    stripComponents = 1
 
 # tmux-resurrect, pinned (loaded via run-shell in tmux.conf.local, not TPM)
 [".local/share/tmux/plugins/tmux-resurrect"]

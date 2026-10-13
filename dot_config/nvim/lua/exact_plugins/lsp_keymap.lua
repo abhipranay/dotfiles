@@ -10,6 +10,9 @@ return {
       enabled = false,
     },
     servers = {
+      golangci_lint_ls = {
+        enabled = false,
+      },
       ["*"] = {
         capabilities = {
           textDocument = {
@@ -27,16 +30,8 @@ return {
           },
         },
       },
-      gopls = {
-        settings = {
-          gopls = {
-            buildFlags = { "-tags=integration testing unit feature" },
-            analyses = {
-              ST1000 = false, -- disable package comment check
-            },
-          },
-        },
-      },
+      -- gopls settings live in config/autocmds.lua (manual vim.lsp.start wins the attach
+      -- race, so a `gopls` block here is dead code and was removed).
     },
   },
 }

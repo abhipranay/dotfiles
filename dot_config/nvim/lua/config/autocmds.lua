@@ -46,7 +46,23 @@ vim.api.nvim_create_autocmd({ "BufWritePost" }, {
   end,
 })
 
--- Manual gopls start as workaround for broken lspconfig auto-attach
+-- Module-cache files must never be modified: gopls registers an edit there as an overlay,
+-- and `go list` then rejects every package load with "Files beneath GOMODCACHE must not be
+-- replaced" — all definitions/symbols in the session hang (spinner forever). Lock the buffer.
+vim.api.nvim_create_autocmd("BufReadPost", {
+  callback = function(event)
+    local modcache = vim.fn.expand("$GOPATH/pkg/mod")
+    local path = vim.api.nvim_buf_get_name(event.buf)
+    if path ~= "" and modcache ~= "" and modcache ~= "$GOPATH/pkg/mod" and path:find(modcache, 1, true) == 1 then
+      vim.bo[event.buf].modifiable = false
+      vim.bo[event.buf].readonly = true
+    end
+  end,
+})
+
+-- Manual gopls start as workaround for broken lspconfig auto-attach.
+-- This is the single source of truth for gopls settings — the lsp_keymap.lua block is dead
+-- code because this vim.lsp.start wins the attach race.
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "go", "gomod", "gowork", "gotmpl" },
   callback = function(event)
@@ -60,6 +76,11 @@ vim.api.nvim_create_autocmd("FileType", {
           gopls = {
             buildFlags = { "-tags=integration testing unit feature" },
             gofumpt = true,
+            -- Prevent gopls from choking on massive workspaces
+            directoryFilters = { "-**/node_modules", "-**/.git", "-**/vendor" },
+            -- golangci-lint covers staticcheck; running both just slows analysis down
+            staticcheck = false,
+            usePlaceholders = true,
             analyses = {
               ST1000 = false,
               nilness = true,

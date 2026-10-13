@@ -14,6 +14,11 @@ end
 
 -- make sure mousemoveevent is enabled
 vim.o.mousemoveevent = true
+
+-- LazyVim picks the grep/find root from the first attached LSP before falling back to .git.
+-- helm_ls roots at Chart.yaml (e.g. cmd/<svc>/helm), which makes <leader>/ search only that
+-- chart dir — looks like "search only finds yaml files". Ignore it for root detection only.
+vim.g.root_lsp_ignore = { "copilot", "helm_ls" }
 -- vim.opt.foldcolumn = "0"
 -- vim.opt.foldlevelstart = 1
 vim.opt.foldtext = "v:lua.nvim_treesitter_foldtext()"

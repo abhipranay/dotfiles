@@ -1,7 +1,7 @@
 return {
   {
     "folke/snacks.nvim",
-    version = "v2.30.0",
+    version = "v2.31.0",
     init = function()
       -- When the explorer is unfocused, snacks highlights the followed file with the global
       -- CursorLine group, which neurogo paints the same colour as the explorer background.
@@ -36,6 +36,8 @@ return {
     end,
     ---@type snacks.Config
     opts = {
+      scroll = { enabled = false }, -- instant <C-d>/<C-u>, like Helix
+      words = { enabled = false }, -- no LSP documentHighlight request on every cursor move
       picker = {
         sources = {
           explorer = {

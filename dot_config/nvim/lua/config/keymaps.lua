@@ -6,10 +6,6 @@ vim.api.nvim_set_keymap("n", "<F9>", [[:lua require"dap".continue()<CR>]], { nor
 vim.api.nvim_set_keymap("n", "<F10>", [[:lua require"dap".step_over()<CR>]], { noremap = true })
 vim.api.nvim_set_keymap("n", "<S-F10>", [[:lua require"dap".step_into()<CR>]], { noremap = true })
 vim.api.nvim_set_keymap("n", "<F12>", [[:lua require"dap.ui.widgets".hover()<CR>]], { noremap = true })
-vim.api.nvim_set_keymap("n", "<F5>", [[:lua require"osv".launch({port = 8086})<CR>]], { noremap = true })
-
--- TSJsplit --
-vim.api.nvim_create_user_command("TSJToggle", [[:lua require('treesj').toggle()<CR>]], {})
 
 -- Move selected block up/down in visual mode
 vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move block down" })

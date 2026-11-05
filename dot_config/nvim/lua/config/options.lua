@@ -18,10 +18,10 @@ vim.o.mousemoveevent = true
 -- LazyVim picks the grep/find root from the first attached LSP before falling back to .git.
 -- helm_ls roots at Chart.yaml (e.g. cmd/<svc>/helm), which makes <leader>/ search only that
 -- chart dir — looks like "search only finds yaml files". Ignore it for root detection only.
-vim.g.root_lsp_ignore = { "copilot", "helm_ls" }
+vim.g.root_lsp_ignore = { "helm_ls" }
 -- vim.opt.foldcolumn = "0"
 -- vim.opt.foldlevelstart = 1
-vim.opt.foldtext = "v:lua.nvim_treesitter_foldtext()"
+vim.opt.foldtext = "" -- native 0.10+: keep syntax highlighting on folded line
 
 -- Use tabs or spaces depending on the filetype
 vim.cmd([[
@@ -29,18 +29,20 @@ vim.cmd([[
   autocmd FileType yaml setlocal tabstop=2 shiftwidth=2 softtabstop=2 expandtab
   autocmd FileType go setlocal colorcolumn=120
   autocmd Filetype c,cpp,rust,python,go,yaml,json setlocal foldmethod=expr
-  autocmd Filetype c,cpp,rust,python,go,yaml,json setlocal foldexpr=nvim_treesitter#foldexpr()
+  autocmd Filetype c,cpp,rust,python,go,yaml,json setlocal foldexpr=v:lua.vim.treesitter.foldexpr()
 ]])
 
 vim.opt.pumblend = 0
 vim.g.tmux_navigator_disable_when_zoomed = 1
 vim.o.mouse = vim.o.mouse .. "a"
 
--- ufo start --
-vim.o.foldcolumn = "1" -- '0' is not bad
-vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+-- folding: native treesitter folds, everything open by default
+vim.o.foldcolumn = "0"
+vim.o.foldlevel = 99
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
--- ufo end --
+
+-- rounded borders for LSP hover/signature (previously via noice's lsp_doc_border preset)
+vim.o.winborder = "rounded"
 
 vim.o.updatetime = 200 -- Default is 4000ms, which is way too slow

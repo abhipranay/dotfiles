@@ -1,6 +1,8 @@
+-- Small, standalone plugin specs. (Historically named lspsaga.lua; lspsaga itself is gone.)
 return {
   {
     "Bekaboo/deadcolumn.nvim",
+    event = { "InsertEnter", "CmdlineEnter" },
     opts = {
       scope = "buffer",
       ---@type string[]|boolean|fun(mode: string): boolean
@@ -9,53 +11,9 @@ return {
       end,
     },
   },
-  { "kosayoda/nvim-lightbulb" },
-  { "leoluz/nvim-dap-go", lazy = true }, -- loaded as a dependency of nvim-dap
-  -- {
-  --   "ldelossa/gh.nvim",
-  --   dependencies = {
-  --     {
-  --       "ldelossa/litee.nvim",
-  --       config = function()
-  --         require("litee.lib").setup()
-  --       end,
-  --     },
-  --   },
-  --   config = function()
-  --     require("litee.gh").setup()
-  --   end,
-  -- },
-  {
-    "norcalli/nvim-colorizer.lua",
-    config = function()
-      require("colorizer").setup()
-    end,
-  },
-  {
-    "kevinhwang91/nvim-ufo",
-    dependencies = {
-      "kevinhwang91/promise-async",
-    },
-    config = function()
-      require("ufo").setup()
-    end,
-  },
-  {
-    "pwntester/octo.nvim",
-    opts = {
-      use_local_fs = true,
-      use_signcolumn = true,
-    },
-  },
-  {
-    "sindrets/diffview.nvim",
-  },
-  {
-    "folke/noice.nvim",
-    opts = {
-      presets = {
-        lsp_doc_border = true,
-      },
-    },
-  },
+  { "leoluz/nvim-dap-go", lazy = true }, -- loaded as a dependency of nvim-dap / neotest
+
+  -- Minimalism: drop LazyVim UI layers that Helix doesn't have.
+  { "folke/noice.nvim", enabled = false }, -- native cmdline/messages; no float re-routing
+  { "akinsho/bufferline.nvim", enabled = false }, -- use <leader>, buffer picker + H/L
 }

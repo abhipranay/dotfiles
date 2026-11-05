@@ -5,9 +5,8 @@ return {
     "MunifTanjim/nui.nvim",
     "nvim-lua/plenary.nvim",
 
-    -- Choose one of the following fuzzy finder
+    -- go-impl prefers snacks picker when available; fzf-lua not needed
     "folke/snacks.nvim",
-    "ibhagwan/fzf-lua",
   },
   opts = {},
   keys = {

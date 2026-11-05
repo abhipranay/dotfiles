@@ -25,7 +25,7 @@ return {
         keys = {
           {
             "gi",
-            "<cmd>lua require('telescope.builtin').lsp_implementations({ reuse_win = true })<CR>",
+            function() Snacks.picker.lsp_implementations() end,
             "Goto Implementation",
           },
         },
